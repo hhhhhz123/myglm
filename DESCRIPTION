@@ -1,14 +1,24 @@
 Package: myglm
 Type: Package
-Title: Binary Logistic Regression using IRWLS
+Title: Binary Logistic Regression Using IRWLS
 Version: 0.1.0
-Author: He Zhang
-Maintainer: zhanh@umich.edu
-Description: Implements binary logistic regression from scratch using. Iteratively Reweighted Least Squares (IRWLS) algorithm.
+Authors@R: person("He", "Zhang", email = "zhanh@umich.edu", role = c("aut", "cre"))
+Description: Implements binary logistic regression from scratch using the 
+    IRWLS algorithm. Compares results with base R glm() function.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Imports:
+    ggplot2,
+    stats
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    bench
+VignetteBuilder: knitr
 URL: https://github.com/hhhhhz123/myglm
 BugReports: https://github.com/hhhhhz123/myglm/issues
+Config/testthat/edition: 3

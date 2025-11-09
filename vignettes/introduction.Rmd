@@ -1,0 +1,111 @@
+---
+title: "Introduction to myglm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to myglm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+This package implements binary logistic regression using the IRWLS algorithm.
+
+## Example
+
+Create data:
+```{r data}
+set.seed(123)
+n <- 200
+# n <- 500
+X <- matrix(rnorm(n * 2), ncol = 2)
+eta <- 0.5 + X[,1] - 1.5*X[,2]
+p <- 1 / (1 + exp(-eta))
+y <- rbinom(n, 1, p)
+```
+
+Fit model:
+```{r fit}
+library(myglm)
+fit <- logistic_fit(X, y)
+print(fit)
+```
+
+Predict:
+```{r predict}
+pred <- predict(fit)
+head(pred)
+```
+
+## Correctness
+
+Compare with glm:
+```{r compare}
+fit_glm <- glm(y ~ X, family = binomial)
+
+# Coefficients
+coef_ours <- fit$coefficients
+coef_glm <- coef(fit_glm)
+
+data.frame(
+  Ours = round(coef_ours, 6),
+  GLM = round(coef_glm, 6),
+  Diff = round(coef_ours - coef_glm, 10)
+)
+
+# Test equality
+# all.equal(coef_ours, coef_glm, tolerance = 1e-8) #[1] "names for current but not for target"
+all.equal(as.numeric(coef_ours), as.numeric(coef_glm), tolerance = 1e-8)
+```
+
+They match.
+
+## Efficiency
+```{r bench}
+library(bench)
+
+bench::mark(
+  ours = logistic_fit(X, y),
+  glm = glm(y ~ X, family = binomial),
+  iterations = 50,
+  check = FALSE
+)
+```
+
+## Plots
+```{r plots, fig.width=6, fig.height=4}
+plot_fitted(fit)
+plot_comparison(fit, fit_glm)
+```
+## Larger Dataset
+Test on a larger dataset with more predictors:
+```{r large}
+set.seed(789)
+n_large <- 500
+X_large <- matrix(rnorm(n_large * 10), ncol = 10)
+eta_large <- 0.5 + rowSums(X_large[,1:3]) - rowSums(X_large[,4:6])
+p_large <- 1 / (1 + exp(-eta_large))
+y_large <- rbinom(n_large, 1, p_large)
+
+# Fit both models
+fit_large <- logistic_fit(X_large, y_large)
+fit_large_glm <- glm(y_large ~ X_large, family = binomial)
+
+# Compare coefficients
+comparison <- data.frame(
+  Ours = fit_large$coefficients,
+  GLM = coef(fit_large_glm),
+  Diff = fit_large$coefficients - coef(fit_large_glm)
+)
+head(comparison, 5)
+```
+
+## Conclusion
+
+Our implementation matches glm exactly and has competitive speed.
